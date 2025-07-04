@@ -1,0 +1,41 @@
+
+services:
+  yugabyte1:
+    image: yugabytedb/yugabyte:latest
+    container_name: yugabyte1
+    command: ["bin/yugabyted", "start", "--daemon=false"]
+    ports:
+      - "15433:15433"  #Yugabyte Anywhere UI
+      - "7000:7000"   # YB-Master UI
+      - "9000:9000"   # YB-TServer UI
+      - "5433:5433"   # YSQL
+      - "9042:9042"   # YCQL (Cassandra)
+    networks:
+      - yugabyte-network  
+
+  yugabyte2:
+    image: yugabytedb/yugabyte:latest
+    container_name: yugabyte2
+    restart: unless-stopped
+    command: ["bin/yugabyted", "start", "--join=yugabyte1", "--daemon=false"]
+    networks:
+      - yugabyte-network
+    depends_on:
+      - yugabyte1
+         #condition: service_healthy
+
+  yugabyte3:
+    image: yugabytedb/yugabyte:latest
+    container_name: yugabyte3
+    restart: unless-stopped
+    command: ["bin/yugabyted", "start", "--join=yugabyte1", "--daemon=false"]
+    networks:
+      - yugabyte-network
+
+    depends_on:
+      - yugabyte1
+         #condition: service_healthy
+         
+networks:
+  yugabyte-network:
+    driver: bridge
